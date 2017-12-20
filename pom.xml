@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2014 Karlsruhe Institute of Technology (thomas.jejkal@kit.edu)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.kit.dama.masi</groupId>
+  <artifactId>MDM-CVMA</artifactId>
+  <version>1.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>MDM-CVMA</name>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>  
+    <projectName>MDM-CVMA</projectName>
+    <firstName>Volker</firstName>
+    <lastName>Hartmann</lastName>
+    <nameId>hartmann-v</nameId>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <group>release</group>
+    <libFolder>MASi/exiftool</libFolder>
+    <datestamp>${maven.build.timestamp}</datestamp>
+    <maven.build.timestamp.format>MMM dd, yyyy</maven.build.timestamp.format>
+  </properties>
+    
+  <developers>
+    <developer>
+      <id>${nameId}</id>
+      <name>${firstName} ${lastName}</name>
+      <email>${firstName}.${lastName}@kit.edu</email>
+      <organization>Karlsruhe Institute of Technology (KIT)</organization>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <description>Sub-Module extracting all metadata from tif according to
+    documentation Corpus Vitraeum Medii Aevi (CVMA).</description>
+  
+  <dependencies>
+    <dependency>
+      <groupId>edu.kit.dama</groupId>
+      <artifactId>MDM-Content</artifactId>
+      <version>1.5.1</version>
+    </dependency>
+    <!--    <dependency>
+      <groupId>be.pw999.jexif</groupId>
+      <artifactId>J-ExifTool</artifactId>
+      <version>0.0.10-SNAPSHOT</version>
+    </dependency>-->
+    <dependency>
+      <groupId>com.github.mjeanroy</groupId>
+      <artifactId>exiftool-lib</artifactId>
+      <version>2.2.1</version>
+    </dependency>  
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>21.0</version>
+    </dependency>  
+    <dependency>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+      <version>2.0.15</version>
+    </dependency>  
+    <dependency>
+      <groupId>com.google.j2objc</groupId>
+      <artifactId>j2objc-annotations</artifactId>
+      <version>1.1</version>
+    </dependency>  
+    <dependency>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>animal-sniffer-annotations</artifactId>
+      <version>1.14</version>
+    </dependency>  
+  </dependencies>
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh-external</artifactId>
+        <version>2.6</version>
+      </extension>
+    </extensions>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- *********************************************************
+      ***  Plugin for creating distribution of your application. ***
+      ***  Filters should be placed in                           ***
+      ***  ${basedir}/src/main/assemble/                         ***
+      **************************************************************  -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.5.5</version>
+        <configuration>
+          <descriptors>
+            <descriptor>${basedir}/src/main/assemble/distribution.xml</descriptor>
+          </descriptors>
+          <outputDirectory>${basedir}/zip</outputDirectory>
+          <finalName>${project.artifactId}-${project.version}-${group}</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.3</version>
+        <configuration>
+          <!--Ignore UI packages and generated code-->
+          <excludePackageNames>com:https:org</excludePackageNames>
+        </configuration>
+       <executions>
+          <execution>
+            <id>javadoc-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <version>1.5.0</version>
+        <executions>
+          <execution>
+            <id>output-html</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>process-asciidoc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <outputDirectory>${project.build.directory}/doc</outputDirectory>
+          <sourceDirectory>src/main/doc/</sourceDirectory>
+          <sourceDocumentName>installation.txt</sourceDocumentName>
+          <sourceHighlighter>highlightjs</sourceHighlighter>
+          <backend>html5</backend>
+          <attributes>
+            <!--stylesheet>flask.css</stylesheet-->
+          </attributes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <scm>
+    <url>https://git.scc.kit.edu/masi/MDM-CVMA</url>
+  </scm>
+</project>

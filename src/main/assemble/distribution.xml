@@ -1,0 +1,86 @@
+<!--
+
+    Copyright (C) 2014 Karlsruhe Institute of Technology 
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<assembly>
+  <id>${group}</id>
+  <!-- which format do you prefer?
+  Possible values are: zip, tar.gz, tar.bz2, jar, dir, war
+  See also: http://maven.apache.org/plugins/maven-assembly-plugin/
+  -->
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <!-- Insert all jars the project depends on. -->
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>KITDM/WEB-INF/lib/${libFolder}</outputDirectory>
+      <includes>
+        <include>com.github.mjeanroy:exiftool-lib</include>
+        <include>com.google.guava:guava</include>
+        <include>com.google.errorprone:error_prone_annotations</include>
+        <include>com.google.j2objc:j2objc-annotations</include>
+        <include>org.codehaus.mojo:animal-sniffer-annotations</include>
+        <include>edu.kit.dama.masi:MDM-CVMA</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+  <!-- Define filter to copy into assembly. -->
+  <fileSets>
+    <fileSet>
+      <directory>${project.build.directory}/doc</directory>
+      <outputDirectory>.</outputDirectory>
+      <includes>
+        <include>README.*</include>
+      </includes>
+      <filtered>true</filtered>
+    </fileSet>
+    <!-- Documentation -->
+    <fileSet>
+      <directory>${project.build.directory}/doc</directory>
+      <outputDirectory>${artifactId}</outputDirectory>
+      <excludes>
+        <exclude>**/*.txt</exclude>
+        <exclude>README.*</exclude>
+      </excludes>
+      <filtered>true</filtered>
+    </fileSet>
+    <!-- Installation script -->
+    <fileSet>
+      <directory>${project.build.scriptSourceDirectory}</directory>
+      <outputDirectory>${artifactId}</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+        <include>*.txt</include>
+      </includes>
+      <filtered>true</filtered>
+    </fileSet>
+    <!-- copy files without filtering. -->
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>src</outputDirectory>
+      <includes>
+        <include>${project.artifactId}-${project.version}-sources.jar</include>
+      </includes>
+      <filtered>false</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/config</directory>
+      <outputDirectory></outputDirectory>
+      <filtered>false</filtered>
+    </fileSet>
+  </fileSets>
+</assembly>

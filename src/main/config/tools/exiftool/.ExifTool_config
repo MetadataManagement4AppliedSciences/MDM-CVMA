@@ -1,0 +1,91 @@
+# NOTE: All tag names used in the following tables are case sensitive.
+
+# The %Image::ExifTool::UserDefined hash defines new tags to be added
+# to existing tables.
+%Image::ExifTool::UserDefined = (
+
+    # override AOCreator in XMP struct and add two new tags to the structure
+    'Image::ExifTool::XMP::iptcExt' => {
+        ArtworkOrObject => {
+            Struct => {
+                STRUCT_NAME => 'ArtworkOrObjectDetails',
+                NAMESPACE   => 'Iptc4xmpExt',
+                AOCopyrightNotice => { },
+                AOCreator    => { List => 'Seq' },
+                AOCreatorId    => { List => 'Seq' },
+                AODateCreated=> { Groups => { 2 => 'Time' }, %dateTimeInfo },
+                AOSource     => { },
+                AOSourceInvNo=> { },
+                AOTitle      => { Writable => 'lang-alt' },
+                AOContributionDescription => { List => 'Seq' },
+            },
+            List => 'Bag',
+        },
+        ArtworkOrObjectAOCopyrightNotice => { Flat => 1, Name => 'ArtworkCopyrightNotice' },
+        ArtworkOrObjectAOCreator        => { Flat => 1, Name => 'ArtworkCreator' },
+        ArtworkOrObjectAOCreatorId        => { Flat => 1, Name => 'ArtworkCreatorId' },
+        ArtworkOrObjectAODateCreated    => { Flat => 1, Name => 'ArtworkDateCreated' },
+        ArtworkOrObjectAOSource         => { Flat => 1, Name => 'ArtworkSource' },
+        ArtworkOrObjectAOSourceInvNo    => { Flat => 1, Name => 'ArtworkSourceInventoryNo' },
+        ArtworkOrObjectAOTitle          => { Flat => 1, Name => 'ArtworkTitle' },
+        ArtworkOrObjectAOContributionDescription => { Flat => 1, Name => 'ArtworkContributionDescription' },
+    },
+
+    # new XMP namespaces (eg. xxx) must be added to the Main XMP table:
+    'Image::ExifTool::XMP::Main' => {
+        # namespace definition for examples 8 to 11
+        cvma => { # <-- must be the same as the NAMESPACE prefix
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::UserDefined::cvma',
+                # (see the definition of this table below)
+            },
+        },
+        # add more user-defined XMP namespaces here...
+    },
+);
+
+# This is a basic example of the definition for a new XMP namespace.
+# This table is referenced through a SubDirectory tag definition
+# in the %Image::ExifTool::UserDefined definition above.
+# The namespace prefix for these tags is 'xxx', which corresponds to
+# an ExifTool family 1 group name of 'XMP-xxx'.
+%Image::ExifTool::UserDefined::cvma = (
+    GROUPS => { 0 => 'XMP', 1 => 'XMP-cvma', 2 => 'Image' },
+    NAMESPACE => { 'cvma' => 'https://lod.academy/cvma/ns/xmp/' },
+    WRITABLE => 'string',
+    Volume => { },
+    Figure => { },
+    PhotographicType => { },
+    PhotographicContext => { },
+    PartOfBuilding => { },
+    Direction => { },
+    Pane => { },
+    Row => { },
+    Column => { },
+    FormerLocation => { },
+    FormerLocationIds => { List => 'Seq' },
+    ObjectHeight => { Writable => 'real' },
+    ObjectWidth => { Writable => 'real' },
+    ObjectDiameter => { Writable => 'real' },
+    AgeDeterminationStart => { },
+    AgeDeterminationEnd => { },
+    RestorationHistory => { },
+    RelatedEntities => {
+        Struct => {
+            STRUCT_NAME => 'RelatedEntities',
+            EntityName => { },
+            EntityIdentifier => { },
+            EntityRole => { },
+        },
+        List => 'Bag',
+    },
+    RelatedEntitiesEntityName => { Flat => 1, Name => 'EntityName' },
+    RelatedEntitiesEntityIdentifier => { Flat => 1, Name => 'EntityIdentifier' },
+    RelatedEntitiesEntityRole => { Flat => 1, Name => 'EntityRole' },
+    IconclassNotation => { List => 'Seq' },
+    IconclassDescription => { },
+    PublishingStatus => { Writable => 'boolean' },
+);
+
+#------------------------------------------------------------------------------
+1;  #end

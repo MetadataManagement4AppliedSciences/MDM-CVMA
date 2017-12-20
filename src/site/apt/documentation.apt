@@ -1,0 +1,56 @@
+~~
+~~ Copyright (C) 2014 Karlsruhe Institute of Technology (thomas.jejkal@kit.edu)
+~~
+~~ Licensed under the Apache License, Version 2.0 (the "License");
+~~ you may not use this file except in compliance with the License.
+~~ You may obtain a copy of the License at
+~~
+~~         http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing, software
+~~ distributed under the License is distributed on an "AS IS" BASIS,
+~~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~~ See the License for the specific language governing permissions and
+~~ limitations under the License.
+~~
+
+                      -----
+               Metadata extraction for CVMA
+                      -----
+                 Volker Hartmann / KIT
+                      -----
+                    11/04/2016
+                      -----
+
+Documentation of the module 'MDM-CVMA'
+
+ The module 'MDM-CVMA' extracts MD from the first image file which is found
+ in the data set. The metadata is embedded in the images via XMP.
+ To extract the metadata an external exif-tool is used. This has to be configured
+ accordingly to the CVMA-XMP specification.
+
+Installation
+
+  [[1]] Install CVMA medata extraction on KIT Data Manager.
+
+    [[a]] Unzip _'${artifactId}-${project.version}-${group}.zip'_ at *_'KITDM_LOCATION'_*.
+    [[b]] Run script: 'bash ${artifactId}/install.sh
+    [[c]] Make all file accessible by tomcat (e.g.: chown -R tomcat7:tomcat7 *_'KITDM_LOCATION'_*)
+
+  [[2]] Install ExifTool by Phil Harvey
+
+    [[a]]  Download tar.gz from http://www.sno.phy.queensu.ca/~phil/exiftool/
+
+    [[b]]  Extract all files (e.g.: ~/datamanager/tools).
+
+  [[3]] Configure ExifTool
+
+    [[a]] Copy _'.ExifTool_config'_ in the installation directory of the exiftool
+
+  [[4]] Restart tomcat
+ 
+  [[5]] Initialize Metadata Extractor and Metadata Indexer for CVMA group.
+
+If you want to use the staging processors please refer to: 
+http://datamanager.kit.edu/dama/manual/#ChapterStagingProcessorConfiguration['Configure Staging Processor']
+
