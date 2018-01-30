@@ -35,6 +35,7 @@
     <libFolder>MASi/exiftool</libFolder>
     <datestamp>${maven.build.timestamp}</datestamp>
     <maven.build.timestamp.format>MMM dd, yyyy</maven.build.timestamp.format>
+    <root.relative.path>./</root.relative.path>  
   </properties>
     
   <developers>
@@ -89,6 +90,33 @@
       <version>1.14</version>
     </dependency>  
   </dependencies>
+  <repositories>
+    <repository>
+      <id>localRepository</id>
+      <name>Local file repository</name>
+      <url>file://${basedir}/${root.relative.path}lib/</url>
+    </repository>
+    <repository>
+      <id>eclipselink</id>
+      <name>Repository for library Library[eclipselink]</name>
+      <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
+    </repository>
+    <repository>
+      <id>miredot</id>
+      <name>MireDot Releases</name>
+      <url>http://nexus.qmino.com/content/repositories/miredot</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>com.hypnoticocelot</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
   <build>
     <extensions>
       <extension>
@@ -176,4 +204,5 @@
   <scm>
     <url>https://git.scc.kit.edu/masi/MDM-CVMA</url>
   </scm>
+
 </project>

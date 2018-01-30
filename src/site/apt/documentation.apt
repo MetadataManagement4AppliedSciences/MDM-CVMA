@@ -33,8 +33,8 @@ Installation
 
   [[1]] Install CVMA medata extraction on KIT Data Manager.
 
-    [[a]] Unzip _'${artifactId}-${project.version}-${group}.zip'_ at *_'KITDM_LOCATION'_*.
-    [[b]] Run script: 'bash ${artifactId}/install.sh
+    [[a]] Unzip _'${project.artifactId}-${project.version}-${group}.zip'_ at *_'KITDM_LOCATION'_*.
+    [[b]] Run script: 'bash ${project.artifactId}/install.sh
     [[c]] Make all file accessible by tomcat (e.g.: chown -R tomcat7:tomcat7 *_'KITDM_LOCATION'_*)
 
   [[2]] Install ExifTool by Phil Harvey

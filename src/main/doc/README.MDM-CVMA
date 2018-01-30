@@ -1,1 +1,1 @@
-You'll find the installation manual in the folder '${artifactId}'.
+You'll find the installation manual in the folder '${project.artifactId}'.

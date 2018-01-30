@@ -51,7 +51,7 @@
     <!-- Documentation -->
     <fileSet>
       <directory>${project.build.directory}/doc</directory>
-      <outputDirectory>${artifactId}</outputDirectory>
+      <outputDirectory>${project.artifactId}</outputDirectory>
       <excludes>
         <exclude>**/*.txt</exclude>
         <exclude>README.*</exclude>
@@ -61,7 +61,7 @@
     <!-- Installation script -->
     <fileSet>
       <directory>${project.build.scriptSourceDirectory}</directory>
-      <outputDirectory>${artifactId}</outputDirectory>
+      <outputDirectory>${project.artifactId}</outputDirectory>
       <includes>
         <include>*.sh</include>
         <include>*.txt</include>

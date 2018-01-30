@@ -16,24 +16,58 @@ Contact <support@datamanager.kit.edu>
 
 .Requirements
 **********************************************************************
-At least a JDK 1.8, maven 1.3 and KIT Data Manager 1.5 or higher has 
-to be installed.
+. JDK 1.8
+. Maven 1.3
+. KIT Data Manager 1.5 or higher
+. MetaStoreService 1.0 or higher
 **********************************************************************
 
 === About this documentation
-This documentation gives a brief overview about the installation of
-the metadata extractor for CVMA.
+This documentation gives a brief overview about the configuration and installation 
+of the metadata extractor for CVMA as a part of KIT Data Manager. 
 
-=== Documentation of the module \'MDM-CVMA'
-The module \'*_MDM-CVMA_*' extracts MD from the first image file which is found
-in the data set. The metadata is embedded in the images via XMP.
-To extract the metadata an external exif-tool is used. This has to be configured
-accordingly to the CVMA-XMP specification.
+=== Metadata Extractor for CVMA
+ClassName :: edu.kit.dama.mdm.content.mets.ExtractCvmaFromImage
+
+The CVMA staging processor extracts XMP metadata from CVMA images. To extract the 
+metadata an external exif-tool is used. This has to be configured accordingly to 
+the CVMA-XMP specification. This extractor depends on a special configuration of 
+the exiftool and generates an XML file with an XML Schema especially generated for 
+the Corpus Vitrearum Medii Aevi (CVMA). 
+
+The extracted content metadata will be stored inside the METS file. If more than one image is to be uploaded as a digital object, the module extracts metadata from the first image.
+
+
+=== Configuration
+This is the default metadata extractor for the CVMA community. It has to be configured as follows:
+
+==== Page 1:
+
+ACCESSIBLE BY :: CVMA
+PRIORITY :: 5
+
+==== *General Options*
+
+Default :: ON
+Disabled :: OFF
+Ingest Supported :: ON
+Download Supported :: OFF
+
+==== Page 2:
+
+notifyPerEmailOnFail :: FALSE
+fileName :: metadata.xml
+communityMetadataDmdId :: CVMA
+communityMDType :: OTHER
+communityMetadataSchemaId :: cvma
+Plugin:bmd :: TRUE
+Plugin:oai_dc :: TRUE 
+
 
 === Installation
 . Install CVMA medata extraction on KIT Data Manager.
-..  Unzip _'${artifactId}-${project.version}-${group}.zip'_ at *_'KITDM_LOCATION'_*. 
-..  Run script: 'bash ${artifactId}/install.sh
+..  Unzip _'${project.artifactId}-${project.version}-${group}.zip'_ at *_'KITDM_LOCATION'_*. 
+..  Run script: 'bash ${project.artifactId}/install.sh
 ..  Make all file accessible by tomcat (e.g.: chown -R tomcat7:tomcat7 *_'KITDM_LOCATION'_*)
 
 . Install ExifTool by Phil Harvey
@@ -47,5 +81,5 @@ accordingly to the CVMA-XMP specification.
 
 . Initialize Metadata Extractor and Metadata Indexer for CVMA group.
 
-If you want to use the staging processors please refer to: 
-http://datamanager.kit.edu/dama/manual/#ChapterStagingProcessorConfiguration['Configure Staging Processor']
+To configure the processors please also refer to http://datamanager.kit.edu/dama/manual/#ChapterStagingProcessorConfiguration[Configure Staging Processor]
+
