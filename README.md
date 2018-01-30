@@ -1,7 +1,6 @@
 # MDM-CVMA
 
-The MDM-CVMA implements a staging processor for CVMA metadata from
-tif files to the digital objects during ingest.
+The CVMA staging processor extracts XMP metadata from CVMA images.
 
 ## How to build
 

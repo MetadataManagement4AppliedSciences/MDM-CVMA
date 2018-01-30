@@ -46,7 +46,7 @@ This is the default metadata extractor for the CVMA community. It has to be conf
 ACCESSIBLE BY :: CVMA
 PRIORITY :: 5
 
-==== *General Options*
+==== General Options
 
 Default :: ON
 Disabled :: OFF
