@@ -41,6 +41,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -51,13 +52,16 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import org.apache.commons.io.IOUtils;
 import org.fzk.tools.xml.JaxenUtil;
+import org.jdom.Element;
+import org.jdom.Namespace;
+import org.jdom.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
- * Extract exif metadata from first image found in data set. 
- * 
+ * Extract exif metadata from first image found in data set.
+ *
  * @author hartmann-v
  */
 public class ExtractCvmaFromImage extends MetsMetadataExtractor {
@@ -84,10 +88,50 @@ public class ExtractCvmaFromImage extends MetsMetadataExtractor {
    */
   private static final String REGEX_TIF_IMAGES = ".*(TIF|tif|TIFF|tiff)";
 
-  
   private static final String ENV_EXIFTOOL_PATH = "exiftool.path";
-  
+
   private String pathToExifTool = null;
+  /**
+   * Namespace for CVMA.
+   */
+  private static final String CVMA_NAMESPACE = "https://lod.academy/cvma/ns/xmp/";
+  /**
+   * Prefix for CVMA.
+   */
+  private static final String CVMA_PREFIX = "cvma";
+  /**
+   * Root node of CVMA.
+   */
+  private static final String CVMA_ROOT = "cvma:cvma";
+  /**
+   * Namespace for Dublin Core.
+   */
+  private static final String OAI_NAMESPACE = "http://www.openarchives.org/OAI/2.0/oai_dc/";
+  /**
+   * Prefix for Dublin Core.
+   */
+  private static final String OAI_PREFIX = "oai_dc";
+  /**
+   * Root node of Dublin Core.
+   */
+  private static final String OAI_ROOT = "oai_dc:dc";
+  /**
+   * Prefix for Dublin Core.
+   */
+  private static final String DC_PREFIX = "dc";
+  /**
+   * Namespace for Dublin Core.
+   */
+  private static final String DC_NAMESPACE = "http://purl.org/dc/elements/1.1/";
+  /**
+   * Prefix for xmpRights.
+   */
+  private static final String XMP_RIGHTS_PREFIX = "xmpRights";
+  /**
+   * Namespace for xmpRights.
+   */
+  private static final String XMP_RIGHTS_NAMESPACE = "http://ns.adobe.com/xap/1.0/rights/";
+
   @Override
   public String[] getUserPropertyKeys() {
     LOGGER.trace("getUserPropertyKeys - Nothing to do");
@@ -242,12 +286,12 @@ public class ExtractCvmaFromImage extends MetsMetadataExtractor {
    */
   private String extractMetadataFromImageToString(File pImageFile) throws IOException {
     LOGGER.debug("Extract metadata from file '{}'", pImageFile.getAbsolutePath());
-    String returnValue = "<cvma xmlns=\"https://lod.academy/cvma/ns/xmp/\" xmlns:Iptc4xmpExt=\"http://iptc.org/std/Iptc4xmpExt/2008-02-29/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:photoshop=\"http://ns.adobe.com/photoshop/1.0/\" xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\" xmlns:xmprights=\"http://ns.adobe.com/xap/1.0/rights/\" xmlns:gps=\"http://www.topografix.com/GPX/1/1/\">" 
-           + "<dc:title>title</dc:title>  <Type>Glasmalerei</Type>  <dc:relation>some relation</dc:relation>  <Volume>some volume</Volume>  <Figure>some figure</Figure>  <dc:identifier>identifier</dc:identifier>" 
-           + "<PhotographicType>Durchlicht Vorderseite Einzelaufnahme</PhotographicType>  <Iptc4xmpExt:DigitalSourceType>Originaldigitalaufnahme</Iptc4xmpExt:DigitalSourceType>  <PhotographicContext>ausgebaut</PhotographicContext>" 
-           + "</cvma>";
+    String returnValue = "<cvma xmlns=\"https://lod.academy/cvma/ns/xmp/\" xmlns:Iptc4xmpExt=\"http://iptc.org/std/Iptc4xmpExt/2008-02-29/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:photoshop=\"http://ns.adobe.com/photoshop/1.0/\" xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\" xmlns:xmprights=\"http://ns.adobe.com/xap/1.0/rights/\" xmlns:gps=\"http://www.topografix.com/GPX/1/1/\">"
+            + "<dc:title>title</dc:title>  <Type>Glasmalerei</Type>  <dc:relation>some relation</dc:relation>  <Volume>some volume</Volume>  <Figure>some figure</Figure>  <dc:identifier>identifier</dc:identifier>"
+            + "<PhotographicType>Durchlicht Vorderseite Einzelaufnahme</PhotographicType>  <Iptc4xmpExt:DigitalSourceType>Originaldigitalaufnahme</Iptc4xmpExt:DigitalSourceType>  <PhotographicContext>ausgebaut</PhotographicContext>"
+            + "</cvma>";
 
-        CvmaXml cvmaXml = new CvmaXml();
+    CvmaXml cvmaXml = new CvmaXml();
     try {
       // set path property for the configuration file used by exif tool.
       System.setProperty("args.path", System.getProperty("java.io.tmpdir") + File.separator + "exif");
@@ -334,7 +378,11 @@ public class ExtractCvmaFromImage extends MetsMetadataExtractor {
   private Document extractMetadataFromImage(File pImageFile) throws IOException {
     Document w3CDocument = null;
     try {
-      w3CDocument = JaxenUtil.getW3CDocument(IOUtils.toInputStream(extractMetadataFromImageToString(pImageFile)));
+      org.jdom.Document pDocument = JaxenUtil.getDocument(extractMetadataFromImageToString(pImageFile));
+      patchCvmaFields(pDocument);
+      XMLOutputter xo;
+      xo = new XMLOutputter();
+      w3CDocument = JaxenUtil.getW3CDocument(IOUtils.toInputStream(xo.outputString(pDocument)));
     } catch (Exception ex) {
       LOGGER.error("Error creating XML", ex);
     }
@@ -378,4 +426,221 @@ public class ExtractCvmaFromImage extends MetsMetadataExtractor {
 
     return returnValue;
   }
+
+  public boolean patchCvmaFields(org.jdom.Document pDocument) {
+    boolean isPatched = false;
+    Namespace dcNamespace = Namespace.getNamespace("xap", "http://ns.adobe.com/xap/1.0/");
+    Namespace cvmaNamespace = Namespace.getNamespace(CVMA_PREFIX, CVMA_NAMESPACE);
+    Namespace[] allNamespaces = {dcNamespace, cvmaNamespace};
+    List nodes = JaxenUtil.getNodes(pDocument, "//xap:CreateDate", allNamespaces);
+    if (!nodes.isEmpty()) {
+      String createDate = ((Element) nodes.get(0)).getText();
+      String newString = testDate(createDate);
+      if (!createDate.equalsIgnoreCase(newString)) {
+        ((Element) nodes.get(0)).setText(newString);
+        isPatched = true;
+      }
+    } else {
+      LOGGER.warn("Partial node createDate not found!");
+    }
+    nodes = JaxenUtil.getNodes(pDocument, "//cvma:AgeDeterminationStart", allNamespaces);
+    if (!nodes.isEmpty()) {
+      String createDate = ((Element) nodes.get(0)).getText();
+      String newString = patchDate(createDate);
+      if (!createDate.equalsIgnoreCase(newString)) {
+        ((Element) nodes.get(0)).setText(newString);
+        isPatched = true;
+      }
+    } else {
+      LOGGER.warn("Node AgeDeterminationStart not found!");
+    }
+    nodes = JaxenUtil.getNodes(pDocument, "//cvma:AgeDeterminationEnd", allNamespaces);
+    if (!nodes.isEmpty()) {
+      String createDate = ((Element) nodes.get(0)).getText();
+      String newString = patchDate(createDate);
+      if (!createDate.equalsIgnoreCase(newString)) {
+        ((Element) nodes.get(0)).setText(newString);
+        isPatched = true;
+      }
+    } else {
+      LOGGER.warn("Node AgeDeterminationEnd not found!");
+    }
+    return isPatched;
+
+  }
+
+  public static String testDate(String pDate) {
+    String isPatched = pDate;
+    String time = "01:00:00+01:00";
+    String date = null;
+    String[] dateAndTime = pDate.split("T");
+    if (dateAndTime.length == 2) {
+      time = patchWholeTime(dateAndTime[1]);
+    }
+    date = patchDate(dateAndTime[0]);
+    if ((time != null) || (!date.equalsIgnoreCase(dateAndTime[0]))) {
+      if (time == null) {
+        time = dateAndTime[1];
+      }
+      String newTime = String.format("%sT%s", date, time);
+      isPatched = newTime;
+
+    }
+    return isPatched;
+
+  }
+
+  public static String patchWholeTime(String pTime) {
+    String newTime = null;
+    String time = null;
+    String timeZone1 = "";
+    String timeZone[] = pTime.split("\\+");
+    switch (timeZone.length) {
+      case 2:
+        timeZone1 = timeZone[1];
+      case 1:
+        time = patchTime(timeZone[0]);
+        break;
+    }
+    newTime = String.format("%s+%s", time, timeZone1);
+    return newTime;
+  }
+
+  public static String patchTime(String pTime) {
+    String newTime;
+    String timeZone[] = pTime.split(":");
+    int seconds = 0;
+    int minutes = 0;
+    int hours = 0;
+    switch (timeZone.length) {
+      case 3:
+        try {
+          seconds = Integer.parseInt(timeZone[2]);
+          if ((seconds < 0) || (seconds > 59)) {
+            seconds = 1;
+          }
+        } catch (NumberFormatException es) {
+        }
+      case 2:
+        try {
+          minutes = Integer.parseInt(timeZone[1]);
+          if ((minutes < 0) || (minutes > 59)) {
+            minutes = 1;
+          }
+        } catch (NumberFormatException es) {
+        }
+      case 1:
+        try {
+          hours = Integer.parseInt(timeZone[0]);
+          if ((hours < 0) || (hours > 23)) {
+            hours = 1;
+          }
+        } catch (NumberFormatException es) {
+        }
+    }
+    newTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    return newTime;
+  }
+
+  public static String patchDate(String pDate) {
+    String newDate = null;
+    String dateString[] = pDate.split("[\\.ß:-]");
+    int days = 1;
+    int months = 1;
+    int years = 1000;
+    switch (dateString.length) {
+      default:
+      case 3:
+        try {
+          days = Integer.parseInt(dateString[2]);
+          if ((days < 1) || (days > 31)) {
+            days = 1;
+          }
+        } catch (NumberFormatException es) {
+        }
+      case 2:
+        try {
+          months = Integer.parseInt(dateString[1]);
+          if ((months < 1) || (months > 12)) {
+            months = 1;
+          }
+        } catch (NumberFormatException es) {
+        }
+      case 1:
+        try {
+          years = Integer.parseInt(dateString[0]);
+          while (years > 2050) {
+            years /= 10;
+          }
+        } catch (NumberFormatException es) {
+        }
+    }
+    newDate = String.format("%04d-%02d-%02d", years, months, days);
+    return newDate;
+  }
+
+//  @Override
+//  protected void patchDmdSection(org.jdom.Document pMetsDocument) {
+//     Namespace dcNamespace = Namespace.getNamespace(DC_PREFIX, DC_NAMESPACE);
+//    Namespace cvmaNamespace = Namespace.getNamespace(CVMA_PREFIX, CVMA_NAMESPACE);
+//    Namespace xmpRightsNamespace = Namespace.getNamespace(XMP_RIGHTS_PREFIX, XMP_RIGHTS_NAMESPACE);
+//    Namespace[] allNamespaces = {dcNamespace, cvmaNamespace, xmpRightsNamespace};
+//
+//    // patch content to dublin core metadata
+//    Element partialDublinCore = getPartialDocument(OAI_PREFIX, pMetsDocument, OAI_NAMESPACE, OAI_ROOT);
+//    Element partialCVMA = getPartialDocument(CVMA_PREFIX, pMetsDocument, CVMA_NAMESPACE, CVMA_ROOT);
+//    replaceText(partialCVMA, "dc:title", partialDublinCore, "dc:title", allNamespaces);
+//    replaceText(partialCVMA, "dc:creator", partialDublinCore, "dc:creator", allNamespaces);
+//    replaceText(partialCVMA, "dc:publisher", partialDublinCore, "dc:publisher", allNamespaces);
+//    replaceText(partialCVMA, "xmpRights:UsageTerms", partialDublinCore, "dc:rights", allNamespaces);
+//    replaceText(partialCVMA, "cvma:IconclassDescription", partialDublinCore, "dc:description", allNamespaces);
+//    replaceText(partialCVMA, "cvma:Type", partialDublinCore, "dc:type", allNamespaces);
+//    replaceText(partialCVMA, "dc:title", partialDublinCore, "dc:subject", allNamespaces);
+//   
+//  }
+//
+//  /**
+//   * Replace text of node if not identical.
+//   *
+//   * @param pSource root element of source
+//   * @param pSourceXPath Xpath to node
+//   * @param pTarget root element of target
+//   * @param pTargetXPath Xpath to node
+//   * @param pNamespaces all namespaces
+//   * @return value changed true or false
+//   */
+//  private boolean replaceText(Element pSource, String pSourceXPath, Element pTarget, String pTargetXPath, Namespace[] pNamespaces) {
+//    boolean replace = false;
+//    String nodeValue = JaxenUtil.getNodeValue(pSource, pSourceXPath, pNamespaces);
+//    String targetValue = JaxenUtil.getNodeValue(pTarget, pTargetXPath, pNamespaces);
+//    if (!nodeValue.equalsIgnoreCase(targetValue)) {
+//      LOGGER.debug("Replace '{}' by '{}'", nodeValue, targetValue);
+//      ((Element) (JaxenUtil.getNodes(pTarget, pTargetXPath, pNamespaces).get(0))).setText(nodeValue);
+//      replace = true;
+//    }
+//    return replace;
+//  }
+//  
+//  /**
+//   * Get root element of partial document.
+//   *
+//   * @param pDigObjId Digital Object ID
+//   * @param pPrefix prefix of the node
+//   * @param pDocument document
+//   * @param pNamespace namespace of the node
+//   * @param pRootElement element name of the node
+//   * @return node
+//   */
+//  private Element getPartialDocument(String pPrefix, org.jdom.Document pDocument, String pNamespace, String pRootElement) {
+//    Element partialDocument = null;
+//    Namespace namespace = Namespace.getNamespace(pPrefix, pNamespace);
+//    List nodes = JaxenUtil.getNodes(pDocument, "//" + pRootElement, new Namespace[]{namespace});
+//    LOGGER.debug("Prefix: {}, rootElement: {}", pPrefix, pRootElement);
+//    if (!nodes.isEmpty()) {
+//      partialDocument = (Element) nodes.get(0);
+//    } else {
+//      LOGGER.warn("Partial document not found!");
+//    }
+//    return partialDocument;
+//  }
 }
